@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Class Representatives | SRC Portal{% endblock %}
+{% block page_title %}<i class="fas fa-users"></i> Class Representatives{% endblock %}
+{% block topbar_actions %}
+<a class="btn btn-primary btn-sm" href="{{ url_for('upload') }}"><i class="fas fa-file-arrow-up"></i>Import Excel</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-title"><i class="fas fa-filter"></i>Find class reps quickly</div>
+  <form method="get" class="filters-bar">
+    <div><label>Search</label><input type="text" name="search" value="{{ filters.search }}" placeholder="Name, email, program, student number"></div>
+    <div><label>Campus</label><select name="campus"><option value="">All campuses</option><option value="south" {{ 'selected' if filters.campus == 'south' }}>South Windsor</option><option value="downtown" {{ 'selected' if filters.campus == 'downtown' }}>Downtown Windsor</option></select></div>
+    <div><label>Intake</label><select name="intake"><option value="">All intakes</option><option value="Fall" {{ 'selected' if filters.intake == 'Fall' }}>Fall (Sep-Dec)</option><option value="Winter" {{ 'selected' if filters.intake == 'Winter' }}>Winter (Jan-Apr)</option><option value="Spring/Summer" {{ 'selected' if filters.intake == 'Spring/Summer' }}>Spring/Summer (May-Aug)</option></select></div>
+    <div><label>Application year</label><select name="year"><option value="">All years</option>{% for year in all_years %}<option value="{{ year }}" {{ 'selected' if filters.year == year }}>{{ year }}</option>{% endfor %}</select></div>
+    <button class="btn btn-primary" type="submit"><i class="fas fa-magnifying-glass"></i>Apply</button>
+    <a class="btn btn-secondary" href="{{ url_for('class_reps') }}">Clear</a>
+  </form>
+</div>
+
+<div class="split" style="margin-bottom:16px;">
+  <div class="hero" style="flex:1; min-width:260px;">
+    <h2>{{ total }} reps found</h2>
+    <p>Results are sorted by most recent application first, which makes emailing the latest Fall, Winter, or Spring/Summer applicants easier.</p>
+  </div>
+  <div class="quick-links">
+    <a class="btn btn-secondary" href="{{ url_for('export', format='xlsx', campus=filters.campus, intake=filters.intake, year=filters.year) }}"><i class="fas fa-file-excel"></i>Excel</a>
+    <a class="btn btn-secondary" href="{{ url_for('export', format='pdf', campus=filters.campus, intake=filters.intake, year=filters.year) }}"><i class="fas fa-file-pdf"></i>PDF</a>
+    <button class="btn btn-primary" type="button" id="email-selected"><i class="fas fa-envelope"></i>Email selected</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th><input type="checkbox" id="check-all"></th>
+          <th>Class rep</th>
+          <th>Campus</th>
+          <th>Program</th>
+          <th>Intake</th>
+          <th>Application year</th>
+          <th>Performance</th>
+          <th>Contact</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rep in reps %}
+        <tr>
+          <td><input type="checkbox" class="rep-checkbox" value="{{ rep.ref }}"></td>
+          <td>
+            <div class="person">
+              <div class="avatar">{{ rep.name[:2].upper() if rep.name else 'SR' }}</div>
+              <div>
+                <strong>{{ rep.name }}</strong>
+                <div class="muted">#{{ rep.student_number or rep.ref }} | {{ rep._status_label }}</div>
+              </div>
+            </div>
+          </td>
+          <td>{% if 'south' in (rep.campus or '').lower() %}<span class="badge badge-green">South</span>{% elif 'downtown' in (rep.campus or '').lower() %}<span class="badge badge-blue">Downtown</span>{% else %}<span class="badge badge-gray">{{ rep.campus }}</span>{% endif %}</td>
+          <td>{{ rep.program }}<div class="muted">{{ rep.course_code }} {{ rep.class_section }}</div></td>
+          <td><span class="badge badge-gold">{{ rep.intake }}</span></td>
+          <td>{{ rep._application_year }}<div class="muted">{{ rep._application_date }}</div></td>
+          <td>
+            <div><strong>{{ rep._current_score }} pts</strong></div>
+            <div class="muted">Meetings {{ rep._meetings_attended }} | Relay {{ rep._relayed }} | Volunteer {{ rep._volunteer_points }}</div>
+          </td>
+          <td><a href="mailto:{{ rep.email }}">{{ rep.email }}</a><div class="muted">{{ rep.phone }}</div></td>
+          <td><a class="btn btn-secondary btn-sm" href="{{ url_for('class_rep_detail', ref=rep.ref) }}"><i class="fas fa-arrow-right"></i>Details</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9"><div class="empty-state">No class reps match these filters.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<script defer src="{{ url_for('static', filename='js/class_reps.js') }}"></script>
+{% endblock %}

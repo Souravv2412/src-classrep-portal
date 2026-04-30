@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Meeting Progress | SRC Portal{% endblock %}
+{% block page_title %}<i class="fas fa-clipboard-check"></i> Meeting Progress{% endblock %}
+{% block topbar_actions %}
+<a class="btn btn-secondary btn-sm" href="{{ url_for('meetings') }}"><i class="fas fa-arrow-left"></i>Back to meetings</a>
+{% endblock %}
+{% block content %}
+<div class="hero" style="margin-bottom:22px;">
+  <h2>{{ meeting.title }}</h2>
+  <p>{{ meeting.date }} at {{ meeting.time }} | {{ meeting.location }} | {{ meeting.campus }} | {{ meeting.intake }} {{ meeting.year }}</p>
+</div>
+<div class="grid-4">
+  <div class="kpi"><div class="kpi-label">Eligible reps</div><div class="kpi-value">{{ summary.total }}</div><div class="kpi-sub">Same intake, year, and campus</div></div>
+  <div class="kpi"><div class="kpi-label">Attended</div><div class="kpi-value">{{ summary.attended }}</div><div class="kpi-sub">Present in meeting</div></div>
+  <div class="kpi"><div class="kpi-label">Regrets</div><div class="kpi-value">{{ summary.notified }}</div><div class="kpi-sub">Informed before missing</div></div>
+  <div class="kpi"><div class="kpi-label">Did not come</div><div class="kpi-value">{{ summary.absent }}</div><div class="kpi-sub">No prior regret</div></div>
+</div>
+<div class="card">
+  <div class="card-title"><i class="fas fa-users"></i>Attendance list</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Student</th><th>Program</th><th>Status</th><th>Note</th></tr></thead>
+      <tbody>
+        {% for attendee in attendees %}
+        <tr>
+          <td><strong>{{ attendee.name }}</strong><div class="muted">{{ attendee.email }}</div></td>
+          <td>{{ attendee.program }}<div class="muted">{{ attendee.campus }}</div></td>
+          <td><span class="badge badge-{{ 'green' if attendee.status == 'attended' else 'gold' if attendee.status == 'notified' else 'red' if attendee.status == 'absent' else 'gray' }}">{{ attendee.status|title }}</span></td>
+          <td>{{ attendee.note or '-' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4"><div class="empty-state">No eligible class reps were found for this meeting.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

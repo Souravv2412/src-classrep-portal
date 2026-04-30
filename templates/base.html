@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SRC Class Rep Portal{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo-wrap">
+          <img src="{{ logo_asset }}" alt="SRC logo">
+        </div>
+        <div class="brand-wordmark">SRC</div>
+        <div class="brand-subtitle">St. Clair Student Representative Council</div>
+      </div>
+
+      <div class="nav-section">Overview</div>
+      <nav>
+        <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.path == '/dashboard' else '' }}"><i class="fas fa-chart-line"></i>Dashboard</a>
+        <a href="{{ url_for('class_reps') }}" class="{{ 'active' if request.path.startswith('/class-reps') or request.path.startswith('/class-rep/') else '' }}"><i class="fas fa-users"></i>Class Representatives</a>
+      </nav>
+
+      <div class="nav-section">Management</div>
+      <nav>
+        <a href="{{ url_for('meetings') }}" class="{{ 'active' if request.path.startswith('/meetings') else '' }}"><i class="fas fa-calendar-days"></i>Meetings</a>
+        <a href="{{ url_for('awards') }}" class="{{ 'active' if request.path.startswith('/awards') else '' }}"><i class="fas fa-award"></i>Awards</a>
+        <a href="{{ url_for('engagement') }}" class="{{ 'active' if request.path.startswith('/engagement') else '' }}"><i class="fas fa-handshake-angle"></i>Engagement</a>
+        <a href="{{ url_for('emails') }}" class="{{ 'active' if request.path.startswith('/emails') else '' }}"><i class="fas fa-envelope"></i>Email Center</a>
+      </nav>
+
+      <div class="nav-section">Data</div>
+      <nav>
+        <a href="{{ url_for('upload') }}" class="{{ 'active' if request.path.startswith('/upload') else '' }}"><i class="fas fa-file-arrow-up"></i>Import Excel</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div>Current term: {{ now.strftime('%B %Y') }}</div>
+        <div>SRC Class Rep Portal</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="page-title">{% block page_title %}SRC Portal{% endblock %}</div>
+        <div class="topbar-actions">{% block topbar_actions %}{% endblock %}{% if auth_enabled and session.get('is_authenticated') %}<a class="btn btn-secondary btn-sm" href="{{ url_for('logout') }}"><i class="fas fa-right-from-bracket"></i>Logout</a>{% endif %}<button type="button" class="btn btn-secondary btn-sm" onclick="shutdownPortal()"><i class="fas fa-power-off"></i>Close App</button></div>
+      </header>
+
+      <section class="content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }}">
+                <i class="fas fa-circle-info"></i>
+                <span>{{ message }}</span>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+      </section>
+    </main>
+  </div>
+  {% block modals %}{% endblock %}
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

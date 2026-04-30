@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Import Data | SRC Portal{% endblock %}
+{% block page_title %}<i class="fas fa-file-arrow-up"></i> Import Data{% endblock %}
+{% block content %}
+<div class="grid-2">
+  <div class="hero">
+    <h2>Upload the latest class rep application export</h2>
+    <p>The portal automatically detects intake, application year, and semester windows from the uploaded submission date so future filters keep working without manual edits.</p>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="fas fa-upload"></i>Upload Excel or CSV</div>
+    <form method="post" enctype="multipart/form-data">
+      <label>Data file</label>
+      <input type="file" name="file" accept=".xlsx,.xls,.csv" required>
+      <div class="quick-links" style="margin-top:18px;"><button class="btn btn-primary" type="submit">Import file</button></div>
+    </form>
+  </div>
+</div>
+{% endblock %}

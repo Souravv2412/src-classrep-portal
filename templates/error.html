@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Error | SRC Portal{% endblock %}
+{% block page_title %}<i class="fas fa-triangle-exclamation"></i> Error{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="hero">
+    <h2>Error {{ code }}</h2>
+    <p>{{ message }}</p>
+  </div>
+  <div class="quick-links" style="margin-top:18px;">
+    <a class="btn btn-primary" href="{{ url_for('dashboard') }}">Go to Dashboard</a>
+    <a class="btn btn-secondary" href="{{ url_for('class_reps') }}">Open Class Reps</a>
+  </div>
+</div>
+{% endblock %}

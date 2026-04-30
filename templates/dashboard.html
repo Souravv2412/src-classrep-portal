@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | SRC Portal{% endblock %}
+{% block page_title %}<i class="fas fa-chart-line"></i> Dashboard{% endblock %}
+{% block topbar_actions %}
+<a class="btn btn-primary btn-sm" href="{{ url_for('upload') }}"><i class="fas fa-file-arrow-up"></i>Import latest data</a>
+{% endblock %}
+
+{% block content %}
+<div class="hero" style="margin-bottom:22px;">
+  <h2>Class rep operations for {{ current_term.label }}</h2>
+  <p>The filters, top 10 ranking, and completed-semester archive now follow the live date automatically, so future years like {{ now.year + 1 }} and {{ now.year + 2 }} appear without manual updates.</p>
+</div>
+
+<div class="grid-4" id="dashboard-kpis">
+  <div class="kpi"><div class="kpi-label">Loading</div><div class="kpi-value">-</div><div class="kpi-sub">Getting current data</div></div>
+</div>
+
+<div class="card">
+  <div class="card-title"><i class="fas fa-filter"></i>Dashboard filters</div>
+  <div class="filters-bar">
+    <div><label>Campus</label><select id="dash-campus"><option value="">All campuses</option><option value="south">South Windsor</option><option value="downtown">Downtown Windsor</option></select></div>
+    <div><label>Intake</label><select id="dash-intake"><option value="">All intakes</option><option value="Fall">Fall</option><option value="Winter">Winter</option><option value="Spring/Summer">Spring/Summer</option></select></div>
+    <div><label>Year</label><select id="dash-year"><option value="">All years</option>{% for year in years %}<option value="{{ year }}">{{ year }}</option>{% endfor %}</select></div>
+    <div><label>Month</label><select id="dash-month"><option value="">All months</option>{% for month in range(1, 13) %}<option value="{{ month }}">{{ month_names[month - 1] if month_names is defined else month }}</option>{% endfor %}</select></div>
+    <button type="button" class="btn btn-secondary" id="dash-clear">Clear</button>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card chart-card"><div class="card-title"><i class="fas fa-chart-pie"></i>Campus distribution</div><canvas id="campusChart"></canvas></div>
+  <div class="card chart-card"><div class="card-title"><i class="fas fa-chart-doughnut"></i>Intake distribution</div><canvas id="intakeChart"></canvas></div>
+</div>
+<div class="grid-2">
+  <div class="card chart-card"><div class="card-title"><i class="fas fa-chart-column"></i>Applications by year</div><canvas id="yearChart"></canvas></div>
+  <div class="card chart-card"><div class="card-title"><i class="fas fa-chart-bar"></i>Top programs</div><canvas id="programChart"></canvas></div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title"><i class="fas fa-ranking-star"></i>Top 5 current semester class reps</div>
+    <div class="list-stack">
+      {% for rep in current_ranking %}
+      <div class="list-item split">
+        <div>
+          <strong>#{{ loop.index }} {{ rep.name }}</strong>
+          <div class="muted">{{ rep.program }} | {{ rep.intake }} {{ rep.year }}</div>
+        </div>
+        <span class="badge badge-gold">{{ rep.score }} pts</span>
+      </div>
+      {% else %}
+      <div class="empty-state">No current-term ranking yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="fas fa-box-archive"></i>Completed semester archive</div>
+    <div class="list-stack">
+      {% for term in archived_rankings %}
+      <div class="list-item">
+        <strong>{{ term.label }}</strong>
+        <div class="muted">Top 5 reps are saved automatically when the semester ends.</div>
+      </div>
+      {% else %}
+      <div class="empty-state">Archive will appear once a semester is completed.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script defer src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

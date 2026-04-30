@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}{{ rep.name }} | SRC Portal{% endblock %}
+{% block page_title %}<i class="fas fa-user"></i> {{ rep.name }}{% endblock %}
+{% block topbar_actions %}
+<a class="btn btn-secondary btn-sm" href="{{ url_for('class_reps') }}"><i class="fas fa-arrow-left"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<div class="grid-2">
+  <div>
+    <div class="card">
+      <div class="person" style="align-items:flex-start;">
+        <div class="avatar" style="width:64px;height:64px;font-size:1.3rem;">{{ rep.name[:2].upper() if rep.name else 'SR' }}</div>
+        <div>
+          <h2 style="margin:0 0 8px; font-family:'Montserrat',sans-serif;">{{ rep.name }}</h2>
+          <div class="quick-links">
+            <span class="badge badge-gold">{{ rep.intake }} {{ rep._application_year }}</span>
+            <span class="badge badge-green">{{ rep._status_label }}</span>
+            {% if rank_position %}<span class="badge badge-blue">Current rank #{{ rank_position }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top:18px;">
+        <div class="metric-tile"><strong>{{ rep._current_score }}</strong><div class="muted">performance points</div></div>
+        <div class="metric-tile"><strong>{{ rep._volunteer_points }}</strong><div class="muted">volunteer points</div></div>
+        <div class="metric-tile"><strong>{{ rep._meetings_attended }}</strong><div class="muted">meetings attended</div></div>
+        <div class="metric-tile"><strong>{{ rep._meetings_notified }}</strong><div class="muted">regrets sent</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-address-card"></i>Student information</div>
+      <div class="metric-list">
+        <div><strong>Program:</strong> {{ rep.program }}</div>
+        <div><strong>Course / section:</strong> {{ rep.course_code }} {{ rep.class_section }}</div>
+        <div><strong>Campus:</strong> {{ rep.campus }}</div>
+        <div><strong>Application date:</strong> {{ rep.date }}</div>
+        <div><strong>Email:</strong> <a href="mailto:{{ rep.email }}">{{ rep.email }}</a></div>
+        <div><strong>Phone:</strong> {{ rep.phone or '-' }}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-note-sticky"></i>VP notes</div>
+      <textarea id="vp-notes">{{ tracking.notes }}</textarea>
+      <div class="quick-links"><button class="btn btn-primary" id="save-notes"><i class="fas fa-floppy-disk"></i>Save notes</button></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-title"><i class="fas fa-calendar-check"></i>Meeting attendance for this semester</div>
+      <div class="list-stack">
+        {% for meeting in meetings %}
+        {% set attendance = tracking.meetings | selectattr('meeting_id', 'eq', meeting.id) | list %}
+        {% set state = attendance[0].status if attendance else 'pending' %}
+        {% set note = attendance[0].note if attendance else '' %}
+        <div class="list-item split">
+          <div>
+            <strong>{{ meeting.title }}</strong>
+            <div class="muted">{{ meeting.date }} at {{ meeting.time }} | {{ meeting.location }} | {{ meeting.campus }}</div>
+            {% if note %}<div class="muted">Note: {{ note }}</div>{% endif %}
+          </div>
+          <div class="quick-links">
+            <span class="badge badge-{{ 'green' if state == 'attended' else 'gold' if state == 'notified' else 'red' if state == 'absent' else 'gray' }}">{{ state|title }}</span>
+            <button class="btn btn-secondary btn-sm attendance-edit" data-meeting-id="{{ meeting.id }}" data-title="{{ meeting.title }}" data-status="{{ state }}" data-note="{{ note }}">Update</button>
+          </div>
+        </div>
+        {% else %}
+        <div class="empty-state">No semester meeting is assigned to this class rep yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-share-nodes"></i>Information relays</div>
+      <button class="btn btn-primary" type="button" onclick="openModal('relay-modal')"><i class="fas fa-plus"></i>Log relay</button>
+      <div class="list-stack" style="margin-top:14px;">
+        {% for relay in tracking.relay_history|reverse %}
+        <div class="list-item"><strong>{{ relay.date[:10] }}</strong><div class="muted">{{ relay.proof or 'Information shared with class.' }}</div></div>
+        {% else %}
+        <div class="empty-state">No relay history yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-award"></i>Awards and recognition</div>
+      <div class="list-stack">
+        {% for award in awards %}
+        <div class="list-item"><strong>{{ award.type|title }} award</strong><div class="muted">{{ award.month }} {{ award.year }} | {{ award.reason or 'Recognition added by VP' }}</div></div>
+        {% else %}
+        <div class="empty-state">No awards yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-list-check"></i>Points history (why this rep is ranked)</div>
+      <div class="list-stack">
+        {% for item in rep._points_history %}
+        <div class="list-item split">
+          <div>
+            <strong>{{ item.title }}</strong>
+            <div class="muted">{{ item.category }} | {{ item.date[:10] if item.date else '-' }}</div>
+            <div class="muted">{{ item.reason }}</div>
+          </div>
+          <span class="badge badge-{{ 'green' if item.points >= 0 else 'red' }}">{{ '+' if item.points >= 0 else '' }}{{ item.points }} pts</span>
+        </div>
+        {% else %}
+        <div class="empty-state">No point events recorded yet for this term.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<div class="modal-overlay" id="attendance-modal">
+  <div class="modal">
+    <div class="modal-header"><h3 style="margin:0;">Update attendance</h3><button class="modal-close" onclick="closeModal('attendance-modal')">&times;</button></div>
+    <input type="hidden" id="attendance-meeting-id">
+    <div class="form-row">
+      <div><label>Status</label><select id="attendance-status"><option value="pending">Pending</option><option value="attended">Attended</option><option value="notified">Regrets sent</option><option value="absent">Did not come</option></select></div>
+      <div><label>Meeting</label><input type="text" id="attendance-title" readonly></div>
+    </div>
+    <div style="margin-top:14px;"><label>Note</label><textarea id="attendance-note"></textarea></div>
+    <div class="quick-links"><button class="btn btn-primary" id="save-attendance">Save attendance</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="relay-modal">
+  <div class="modal">
+    <div class="modal-header"><h3 style="margin:0;">Log information relay</h3><button class="modal-close" onclick="closeModal('relay-modal')">&times;</button></div>
+    <label>Proof or notes</label><textarea id="relay-proof"></textarea>
+    <div class="quick-links"><button class="btn btn-primary" id="save-relay">Save relay</button></div>
+  </div>
+</div>
+<script>window.REP_REF = {{ rep.ref|tojson }};</script>
+<script defer src="{{ url_for('static', filename='js/rep_detail.js') }}"></script>
+{% endblock %}

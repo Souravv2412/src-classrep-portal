@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In | SRC Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+  <main class="auth-wrap">
+    <section class="auth-card">
+      <img src="{{ logo_asset }}" alt="SRC logo" class="auth-logo">
+      <h1>SRC Portal Login</h1>
+      <p class="muted">Only authorised SRC team members can access and edit records.</p>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ 'success' if category == 'success' else 'error' }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      <form method="post" class="auth-form">
+        <input type="hidden" name="next" value="{{ next }}">
+        <label>Username</label>
+        <input type="text" name="username" required autocomplete="username">
+        <label>Password</label>
+        <input type="password" name="password" required autocomplete="current-password">
+        <button class="btn btn-primary" type="submit">Sign In</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

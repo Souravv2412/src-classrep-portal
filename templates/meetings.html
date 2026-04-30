@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Meetings | SRC Portal{% endblock %}
+{% block page_title %}<i class="fas fa-calendar-days"></i> Meetings{% endblock %}
+{% block topbar_actions %}
+<button class="btn btn-primary btn-sm" type="button" onclick="openModal('meeting-modal')"><i class="fas fa-plus"></i>Create meeting</button>
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-title"><i class="fas fa-circle-info"></i>Meeting tracking</div>
+  <p class="muted">Every meeting now keeps its own progress page with attended, regrets, absent, and pending counts for the selected intake, year, and campus.</p>
+</div>
+<div class="grid-2">
+  {% for meeting in meetings %}
+  <div class="card">
+    <div class="split">
+      <div>
+        <h3 style="margin:0 0 6px; font-family:'Montserrat',sans-serif;">{{ meeting.title }}</h3>
+        <div class="muted">{{ meeting.date }} at {{ meeting.time }} | {{ meeting.location }}</div>
+        <div class="quick-links"><span class="badge badge-gold">{{ meeting.intake }} {{ meeting.year }}</span><span class="badge badge-{{ 'gray' if meeting.status == 'completed' else 'green' }}">{{ meeting.status|title }}</span></div>
+      </div>
+      <div>{{ meeting.campus }}</div>
+    </div>
+    <div class="metric-list" style="margin-top:16px;">
+      <div><strong>{{ meeting.summary.attended }}</strong> attended out of {{ meeting.summary.total }}</div>
+      <div><strong>{{ meeting.summary.notified }}</strong> regrets sent before missing</div>
+      <div><strong>{{ meeting.summary.absent }}</strong> did not attend</div>
+      <div class="progress-bar"><span style="width: {{ meeting.summary.attendance_rate }}%;"></span></div>
+    </div>
+    <div class="quick-links">
+      <a class="btn btn-secondary btn-sm" href="{{ url_for('meeting_progress', meeting_id=meeting.id) }}"><i class="fas fa-clipboard-check"></i>Track progress</a>
+      <form method="post"><input type="hidden" name="action" value="delete"><input type="hidden" name="meeting_id" value="{{ meeting.id }}"><button class="btn btn-danger btn-sm" type="submit">Delete</button></form>
+    </div>
+  </div>
+  {% else %}
+  <div class="card"><div class="empty-state">No meetings yet. Create one to start attendance tracking.</div></div>
+  {% endfor %}
+</div>
+{% endblock %}
+{% block modals %}
+<div class="modal-overlay" id="meeting-modal"><div class="modal"><div class="modal-header"><h3 style="margin:0;">Create meeting</h3><button class="modal-close" onclick="closeModal('meeting-modal')">&times;</button></div><form method="post"><input type="hidden" name="action" value="add"><div class="form-row"><div><label>Meeting title</label><input type="text" name="title" required></div><div><label>Date</label><input type="date" name="date" required></div></div><div class="form-row"><div><label>Time</label><input type="time" name="time" required></div><div><label>Location</label><input type="text" name="location"></div></div><div class="form-row"><div><label>Campus</label><select name="campus"><option value="All">All campuses</option><option value="South Windsor Campus">South Windsor</option><option value="Downtown Windsor Campus">Downtown Windsor</option></select></div><div><label>Intake</label><select name="intake"><option value="{{ current_term.intake }}">{{ current_term.intake }}</option><option value="Fall">Fall</option><option value="Winter">Winter</option><option value="Spring/Summer">Spring/Summer</option></select></div><div><label>Year</label><select name="year">{% for year in all_years|reverse %}<option value="{{ year }}">{{ year }}</option>{% endfor %}</select></div></div><label>Notes</label><textarea name="notes"></textarea><div class="quick-links"><button class="btn btn-primary" type="submit">Save meeting</button></div></form></div></div>
+{% endblock %}

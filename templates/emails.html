@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Email Center | SRC Portal{% endblock %}
+{% block page_title %}<i class="fas fa-envelope"></i> Email Center{% endblock %}
+{% block content %}
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title"><i class="fas fa-pen"></i>Compose email</div>
+    <form method="post" id="email-form">
+      <input type="hidden" name="action" value="log_email">
+      <div class="form-row">
+        <div><label>Campus</label><select name="campus" id="email-campus"><option value="">All campuses</option><option value="south" {{ 'selected' if filters.campus == 'south' }}>South Windsor</option><option value="downtown" {{ 'selected' if filters.campus == 'downtown' }}>Downtown Windsor</option></select></div>
+        <div><label>Intake</label><select name="intake" id="email-intake"><option value="">All intakes</option><option value="Fall" {{ 'selected' if filters.intake == 'Fall' }}>Fall</option><option value="Winter" {{ 'selected' if filters.intake == 'Winter' }}>Winter</option><option value="Spring/Summer" {{ 'selected' if filters.intake == 'Spring/Summer' }}>Spring/Summer</option></select></div>
+        <div><label>Year</label><select name="year" id="email-year"><option value="">All years</option>{% for year in all_years %}<option value="{{ year }}" {{ 'selected' if filters.year == year }}>{{ year }}</option>{% endfor %}</select></div>
+      </div>
+      <div style="margin-top:14px;"><label>Subject</label><input type="text" id="email-subject" name="subject" required></div>
+      <div style="margin-top:14px;"><label>Message</label><textarea id="email-body" name="body" required></textarea></div>
+      <div style="margin-top:14px;"><label>Schedule (optional)</label><input type="datetime-local" name="scheduled_time"></div>
+      <div class="card" style="margin:16px 0 0; padding:16px;">
+        <div class="split"><strong>Recipients</strong><span id="selected-count">0 selected</span></div>
+        <div style="margin-top:10px;"><label><input type="checkbox" id="select-all-recipients"> Select all recipients</label></div>
+        <div style="margin-top:10px;"><label>Search recipient</label><input type="text" id="recipient-search" placeholder="Search by name, email, intake"></div>
+        <div class="list-stack" style="max-height:260px; overflow:auto; margin-top:12px;">
+          {% for rep in reps %}
+          <label class="list-item recipient-item" data-search="{{ (rep.name ~ ' ' ~ rep.email ~ ' ' ~ rep.intake ~ ' ' ~ (rep._application_year if rep._application_year is defined else ''))|lower }}"><input type="checkbox" class="email-recipient" name="selected_refs" value="{{ rep.ref }}" data-email="{{ rep.email }}" data-name="{{ rep.name }}" {{ 'checked' if rep.ref|string in selected_refs }}>
+            <strong>{{ rep.name }}</strong><div class="muted">{{ rep.email }} | {{ rep.intake }} {{ rep._application_year if rep._application_year is defined else '' }}</div>
+          </label>
+          {% else %}
+          <div class="empty-state">No class reps match this email filter.</div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="quick-links">
+        <button class="btn btn-primary" type="submit"><i class="fas fa-floppy-disk"></i>Save email record</button>
+        <button class="btn btn-secondary" type="button" id="open-send-options"><i class="fas fa-paper-plane"></i>Confirm & Send</button>
+      </div>
+    </form>
+  </div>
+  <div>
+    <div class="card">
+      <div class="card-title"><i class="fas fa-bolt"></i>Quick email templates</div>
+      <div class="list-stack">
+        <button class="btn btn-secondary template-btn" type="button" data-subject="Upcoming SRC class rep meeting" data-body="Dear Class Representatives,%0A%0AThis is a reminder about our upcoming SRC meeting.%0A%0APlease confirm attendance or send regrets in advance.%0A%0ARegards,%0AVP">Meeting reminder</button>
+        <button class="btn btn-secondary template-btn" type="button" data-subject="Please relay this update to your class" data-body="Dear Class Representatives,%0A%0APlease share the following update with your class:%0A%0A[Add update here]%0A%0AThank you,%0ASRC VP">Relay request</button>
+        <button class="btn btn-secondary template-btn" type="button" data-subject="Congratulations on your recognition" data-body="Dear [Name],%0A%0ACongratulations on your recognition as a high-performing class representative.%0A%0AThank you for your contribution.%0A%0ASRC VP">Recognition</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fas fa-clock-rotate-left"></i>Email history</div>
+      <div class="list-stack">{% for email in emails_log %}<div class="list-item"><strong>{{ email.subject }}</strong><div class="muted">{{ email.created[:16] }} | {{ email.recipients|length }} recipients | {{ email.status }}</div><div class="muted">{{ email.body[:140] }}{% if email.body|length > 140 %}...{% endif %}</div></div>{% else %}<div class="empty-state">No email records yet.</div>{% endfor %}</div>
+    </div>
+  </div>
+</div>
+<script defer src="{{ url_for('static', filename='js/emails.js') }}"></script>
+{% endblock %}
+{% block modals %}
+<div class="modal-overlay" id="send-options-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 style="margin:0;">Send Email</h3>
+      <button class="modal-close" onclick="closeModal('send-options-modal')">&times;</button>
+    </div>
+    <p class="muted" id="send-summary">Preparing recipients...</p>
+    <div class="card" style="margin-bottom:12px;">
+      <div style="font-weight:700; margin-bottom:8px;">Recipients</div>
+      <div id="send-recipient-list" class="muted" style="max-height:120px; overflow:auto;"></div>
+    </div>
+    <div class="card" style="margin-bottom:12px;">
+      <div style="font-weight:700; margin-bottom:8px;">Message Preview</div>
+      <div id="send-preview-subject" class="muted"></div>
+      <div id="send-preview-body" class="muted" style="white-space:pre-wrap; margin-top:6px;"></div>
+    </div>
+    <div class="quick-links">
+      <button class="btn btn-primary" type="button" id="send-default-mail"><i class="fas fa-envelope"></i>Default Mail App</button>
+      <button class="btn btn-secondary" type="button" id="send-gmail"><i class="fab fa-google"></i>Gmail</button>
+      <button class="btn btn-secondary" type="button" id="send-outlook"><i class="fab fa-microsoft"></i>Outlook Web</button>
+    </div>
+    <p class="muted" style="margin-top:12px;">Use your organisation Outlook/Gmail account when compose opens. Replies will come to that account.</p>
+  </div>
+</div>
+{% endblock %}

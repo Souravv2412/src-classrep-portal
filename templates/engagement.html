@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Engagement | SRC Portal{% endblock %}
+{% block page_title %}<i class="fas fa-handshake-angle"></i> Engagement & Ranking{% endblock %}
+{% block topbar_actions %}
+<button class="btn btn-primary btn-sm" type="button" onclick="openModal('engagement-modal')"><i class="fas fa-plus"></i>Add volunteer points</button>
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-title"><i class="fas fa-ranking-star"></i>Current semester top 10</div>
+  <div class="list-stack">{% for rep in current_ranking %}<div class="list-item split"><div><strong>#{{ loop.index }} {{ rep.name }}</strong><div class="muted">{{ rep.program }} | {{ rep.intake }} {{ rep.year }}</div></div><div class="quick-links"><span class="badge badge-gold">{{ rep.score }} pts</span><span class="badge badge-green">{{ rep.volunteer_points }} volunteer</span></div></div>{% else %}<div class="empty-state">No current ranking yet.</div>{% endfor %}</div>
+</div>
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title"><i class="fas fa-filter"></i>Contribution filters</div>
+    <form method="get" class="filters-bar">
+      <div><label>Campus</label><select name="campus"><option value="">All campuses</option><option value="south" {{ 'selected' if filters.campus == 'south' }}>South Windsor</option><option value="downtown" {{ 'selected' if filters.campus == 'downtown' }}>Downtown Windsor</option></select></div>
+      <div><label>Intake</label><select name="intake"><option value="">All intakes</option><option value="Fall" {{ 'selected' if filters.intake == 'Fall' }}>Fall</option><option value="Winter" {{ 'selected' if filters.intake == 'Winter' }}>Winter</option><option value="Spring/Summer" {{ 'selected' if filters.intake == 'Spring/Summer' }}>Spring/Summer</option></select></div>
+      <div><label>Year</label><select name="year"><option value="">All years</option>{% for year in all_years %}<option value="{{ year }}" {{ 'selected' if filters.year == year }}>{{ year }}</option>{% endfor %}</select></div>
+      <button class="btn btn-primary" type="submit">Apply</button>
+    </form>
+    <div class="list-stack" style="margin-top:16px;">{% for item in contributions %}<div class="list-item"><strong>{{ item.name }}</strong><div class="muted">{{ item.date }} | {{ item.description }}</div><span class="badge badge-gold">{{ item.points }} pts</span></div>{% else %}<div class="empty-state">No volunteer contributions in this filter.</div>{% endfor %}</div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="fas fa-box-archive"></i>Completed semester top 5 archive</div>
+    <div class="list-stack">{% for term in archived_rankings %}<div class="list-item"><strong>{{ term.label }}</strong><div class="muted">{% for leader in term.leaders %}#{{ loop.index }} {{ leader.name }}{% if not loop.last %}, {% endif %}{% endfor %}</div></div>{% else %}<div class="empty-state">Archive will populate automatically after a semester ends.</div>{% endfor %}</div>
+  </div>
+</div>
+{% endblock %}
+{% block modals %}
+<div class="modal-overlay" id="engagement-modal"><div class="modal"><div class="modal-header"><h3 style="margin:0;">Add volunteer contribution</h3><button class="modal-close" onclick="closeModal('engagement-modal')">&times;</button></div><form method="post"><div class="form-row"><div><label>Search class rep</label><input type="text" id="engagement-search" placeholder="Search by name, ref, intake"></div><div><label>Class rep</label><select name="ref" id="engagement-ref">{% for rep in reps %}<option value="{{ rep.ref }}" data-search="{{ (rep.name ~ ' ' ~ rep.ref ~ ' ' ~ rep.intake ~ ' ' ~ (rep._application_year if rep._application_year is defined else ''))|lower }}">{{ rep.name }} | {{ rep.intake }} {{ rep._application_year if rep._application_year is defined else '' }}</option>{% endfor %}</select></div><div><label>Date</label><input type="date" name="date" value="{{ now_date }}"></div><div><label>Points</label><input type="text" name="points" value="5"></div></div><label>Description</label><textarea name="description" placeholder="Attended SRC event, volunteered, helped beyond class rep responsibility"></textarea><div class="quick-links"><button class="btn btn-primary" type="submit">Save contribution</button></div></form></div></div>
+<script defer src="{{ url_for('static', filename='js/engagement.js') }}"></script>
+{% endblock %}

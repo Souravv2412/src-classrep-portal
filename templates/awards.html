@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Awards | SRC Portal{% endblock %}
+{% block page_title %}<i class="fas fa-award"></i> Awards{% endblock %}
+{% block topbar_actions %}
+<button class="btn btn-primary btn-sm" type="button" onclick="openModal('award-modal')"><i class="fas fa-plus"></i>Add award</button>
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-title"><i class="fas fa-filter"></i>Filter awards</div>
+  <form method="get" class="filters-bar">
+    <div><label>Campus</label><select name="campus"><option value="">All campuses</option><option value="south" {{ 'selected' if filters.campus == 'south' }}>South Windsor</option><option value="downtown" {{ 'selected' if filters.campus == 'downtown' }}>Downtown Windsor</option></select></div>
+    <div><label>Year</label><select name="year"><option value="">All years</option>{% for year in all_years %}<option value="{{ year }}" {{ 'selected' if filters.year == year }}>{{ year }}</option>{% endfor %}</select></div>
+    <div><label>Month</label><select name="month"><option value="">Whole year / all months</option>{% for month in month_names %}<option value="{{ month }}" {{ 'selected' if filters.month == month }}>{{ month }}</option>{% endfor %}</select></div>
+    <div><label>Award type</label><select name="type"><option value="">All types</option><option value="monthly" {{ 'selected' if filters.type == 'monthly' }}>Class rep of the month</option><option value="yearly" {{ 'selected' if filters.type == 'yearly' }}>Class rep of the year</option></select></div>
+    <button class="btn btn-primary" type="submit">Apply</button>
+    <a class="btn btn-secondary" href="{{ url_for('awards') }}">Clear</a>
+  </form>
+</div>
+
+<div class="grid-2">
+  <div class="card"><div class="card-title"><i class="fas fa-medal"></i>Class rep of the month</div><div class="list-stack">{% for award in monthly_winners %}<div class="list-item"><strong>{{ award.rep_name }}</strong><div class="muted">{{ award.month }} {{ award.year }} | {{ award.campus }}</div></div>{% else %}<div class="empty-state">No monthly winners in this filter.</div>{% endfor %}</div></div>
+  <div class="card"><div class="card-title"><i class="fas fa-trophy"></i>Class rep of the year</div><div class="list-stack">{% for award in yearly_winners %}<div class="list-item"><strong>{{ award.rep_name }}</strong><div class="muted">{{ award.year }} | {{ award.campus }}</div></div>{% else %}<div class="empty-state">No yearly winners in this filter.</div>{% endfor %}</div></div>
+</div>
+
+<div class="card">
+  <div class="card-title"><i class="fas fa-list"></i>All award records</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Student</th><th>Type</th><th>Month / year</th><th>Campus</th><th>Reason</th><th></th></tr></thead>
+      <tbody>
+        {% for award in awards %}
+        <tr>
+          <td><strong>{{ award.rep_name }}</strong><div class="muted">{{ award.program }}</div></td>
+          <td><span class="badge badge-gold">{{ award.type|title }}</span></td>
+          <td>{{ award.month }} {{ award.year }}</td>
+          <td>{{ award.campus }}</td>
+          <td>{{ award.reason or '-' }}</td>
+          <td><form method="post"><input type="hidden" name="action" value="delete"><input type="hidden" name="award_id" value="{{ award.id }}"><button class="btn btn-danger btn-sm" type="submit">Delete</button></form></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6"><div class="empty-state">No award records in this filter.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block modals %}
+<div class="modal-overlay" id="award-modal"><div class="modal"><div class="modal-header"><h3 style="margin:0;">Add award</h3><button class="modal-close" onclick="closeModal('award-modal')">&times;</button></div><form method="post"><input type="hidden" name="action" value="add"><div class="form-row"><div><label>Search class rep</label><input type="text" id="award-search" placeholder="Search by name, ref, campus"></div><div><label>Class rep</label><select name="ref" id="award-ref">{% for rep in reps %}<option value="{{ rep.ref }}" data-search="{{ (rep.name ~ ' ' ~ rep.ref ~ ' ' ~ rep.campus)|lower }}">{{ rep.name }} | {{ rep.campus }}</option>{% endfor %}</select></div><div><label>Type</label><select name="award_type"><option value="monthly">Class rep of the month</option><option value="yearly">Class rep of the year</option></select></div></div><div class="form-row"><div><label>Month</label><select name="month">{% for month in month_names %}<option value="{{ month }}">{{ month }}</option>{% endfor %}</select></div><div><label>Year</label><select name="year">{% for year in all_years|reverse %}<option value="{{ year }}">{{ year }}</option>{% endfor %}</select></div></div><label>Reason</label><textarea name="reason"></textarea><input type="hidden" name="name" id="award-name"><div class="quick-links"><button class="btn btn-primary" type="submit">Save award</button></div></form></div></div>
+<script defer src="{{ url_for('static', filename='js/awards.js') }}"></script>
+{% endblock %}
