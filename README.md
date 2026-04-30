@@ -51,7 +51,23 @@ If `SRC_PORTAL_DATA_ROOT` is not set, app fallback paths are used.
 4. Add a Railway **Volume** and mount it at `/data`.
 5. Deploy.
 
-`railway.json` and `Procfile` are included. Start command is `python run_portal.py`.
+`railway.json` and `Procfile` are included. Production start command uses `gunicorn`.
+
+## Render Deployment
+
+1. Keep repository public/private as you prefer.
+2. In Render, create a new **Web Service** from this repo.
+3. Render auto-detects `render.yaml`. If asked manually, use:
+   - Build command: `pip install -r requirements.txt`
+   - Start command: `gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120`
+4. Add a **Persistent Disk** and mount it at:
+   - `/var/data`
+5. Set environment variables:
+   - `SRC_PORTAL_DATA_ROOT=/var/data`
+   - `SRC_PORTAL_OPEN_BROWSER=0`
+   - `SRC_PORTAL_ADMIN_USERNAME=<your_username>`
+   - `SRC_PORTAL_ADMIN_PASSWORD=<your_password>`
+6. Deploy and open `/health` to confirm service status.
 
 ## Local Run
 
@@ -61,4 +77,3 @@ python -m venv .venv
 pip install -r requirements.txt
 python run_portal.py
 ```
-

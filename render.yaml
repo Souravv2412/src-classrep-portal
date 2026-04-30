@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: src-classrep-portal
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
+    healthCheckPath: /health
+    envVars:
+      - key: SRC_PORTAL_OPEN_BROWSER
+        value: "0"
+      - key: SRC_PORTAL_DATA_ROOT
+        value: /var/data
+      - key: SRC_PORTAL_ADMIN_USERNAME
+        sync: false
+      - key: SRC_PORTAL_ADMIN_PASSWORD
+        sync: false
