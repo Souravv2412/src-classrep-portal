@@ -12,6 +12,10 @@ import traceback
 import pandas as pd
 from flask import Flask, flash, jsonify, redirect, render_template, request, send_file, session, url_for
 from werkzeug.exceptions import HTTPException
+try:
+    import psycopg2
+except Exception:
+    psycopg2 = None
 
 BASE_DIR = os.path.dirname(__file__)
 
@@ -84,6 +88,7 @@ TRACKING_FILE = os.path.join(DATA_DIR, "tracking.json")
 MEETINGS_FILE = os.path.join(DATA_DIR, "meetings.json")
 AWARDS_FILE = os.path.join(DATA_DIR, "awards.json")
 EMAILS_FILE = os.path.join(DATA_DIR, "emails.json")
+DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 
 JSON_CACHE = {}
 
@@ -94,6 +99,13 @@ os.makedirs(LOG_DIR, exist_ok=True)
 
 LEGACY_DATA_DIR = os.path.join(BASE_DIR, "data")
 LEGACY_UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
+STORE_KEY_BY_FILE = {
+    DATA_FILE: "classreps",
+    TRACKING_FILE: "tracking",
+    MEETINGS_FILE: "meetings",
+    AWARDS_FILE: "awards",
+    EMAILS_FILE: "emails",
+}
 
 
 def migrate_legacy_storage():
@@ -204,6 +216,75 @@ def log_error(message):
             log_file.write(f"[{timestamp}] {message}\n")
     except Exception:
         pass
+
+
+def db_enabled():
+    return bool(DATABASE_URL and psycopg2 is not None)
+
+
+def db_init():
+    if not db_enabled():
+        return
+    try:
+        with psycopg2.connect(DATABASE_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS portal_store (
+                        key TEXT PRIMARY KEY,
+                        value JSONB NOT NULL,
+                        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    )
+                    """
+                )
+            conn.commit()
+    except Exception as exc:
+        log_error(f"Database init failed: {exc}")
+
+
+def db_load_key(key, default_value):
+    if not db_enabled():
+        return None
+    try:
+        with psycopg2.connect(DATABASE_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT value FROM portal_store WHERE key = %s", (key,))
+                row = cur.fetchone()
+        if not row:
+            return json.loads(json.dumps(default_value))
+        value = row[0]
+        if isinstance(value, str):
+            value = json.loads(value)
+        return json.loads(json.dumps(value))
+    except Exception as exc:
+        log_error(f"Database read failed for key {key}: {exc}")
+        return None
+
+
+def db_save_key(key, data):
+    if not db_enabled():
+        return False
+    try:
+        payload = json.dumps(data, default=str)
+        with psycopg2.connect(DATABASE_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO portal_store(key, value, updated_at)
+                    VALUES (%s, %s::jsonb, NOW())
+                    ON CONFLICT (key)
+                    DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+                    """,
+                    (key, payload),
+                )
+            conn.commit()
+        return True
+    except Exception as exc:
+        log_error(f"Database write failed for key {key}: {exc}")
+        return False
+
+
+db_init()
 
 
 @lru_cache(maxsize=8192)
@@ -322,6 +403,11 @@ def get_dynamic_years(reps):
 
 
 def load_json(path, default_value):
+    key = STORE_KEY_BY_FILE.get(path)
+    if key:
+        db_value = db_load_key(key, default_value)
+        if db_value is not None:
+            return db_value
     if os.path.exists(path):
         try:
             stat = os.stat(path)
@@ -348,6 +434,10 @@ def load_json(path, default_value):
 
 
 def save_json(path, data):
+    key = STORE_KEY_BY_FILE.get(path)
+    if key and db_save_key(key, data):
+        JSON_CACHE.clear()
+        return
     directory = os.path.dirname(path)
     os.makedirs(directory, exist_ok=True)
     temp_path = f"{path}.tmp"

@@ -4,3 +4,4 @@ XlsxWriter==3.2.9
 reportlab==4.4.3
 gunicorn==23.0.0
 openpyxl==3.1.5
+psycopg2-binary==2.9.10
