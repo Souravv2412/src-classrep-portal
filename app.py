@@ -216,6 +216,10 @@ def log_error(message):
             log_file.write(f"[{timestamp}] {message}\n")
     except Exception:
         pass
+    try:
+        print(f"[ERROR] {message}")
+    except Exception:
+        pass
 
 
 def db_enabled():
@@ -240,6 +244,23 @@ def db_init():
             conn.commit()
     except Exception as exc:
         log_error(f"Database init failed: {exc}")
+
+
+def db_status():
+    if not db_enabled():
+        return {"enabled": False, "reachable": False, "error": "DATABASE_URL missing or psycopg2 unavailable"}
+    try:
+        with psycopg2.connect(DATABASE_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT to_regclass('public.portal_store')")
+                table_name = cur.fetchone()[0]
+                row_count = 0
+                if table_name:
+                    cur.execute("SELECT COUNT(*) FROM portal_store")
+                    row_count = int(cur.fetchone()[0])
+        return {"enabled": True, "reachable": True, "table": bool(table_name), "rows": row_count}
+    except Exception as exc:
+        return {"enabled": True, "reachable": False, "error": str(exc)}
 
 
 def db_load_key(key, default_value):
@@ -1387,6 +1408,11 @@ def api_stats():
 @app.route("/health")
 def health():
     return jsonify({"ok": True, "timestamp": now_local().isoformat()})
+
+
+@app.route("/api/storage-status")
+def storage_status():
+    return jsonify(db_status())
 
 
 @app.route("/shutdown", methods=["POST"])
