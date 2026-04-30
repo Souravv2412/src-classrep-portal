@@ -39,20 +39,6 @@ Data is saved in local files under:
 
 If `SRC_PORTAL_DATA_ROOT` is not set, app fallback paths are used.
 
-## Railway Deployment
-
-1. Create a **private** GitHub repository and push this project.
-2. Create a Railway project and connect the repository.
-3. Set these Railway variables:
-   - `SRC_PORTAL_DATA_ROOT=/data`
-   - `SRC_PORTAL_ADMIN_USERNAME=<your_admin_username>`
-   - `SRC_PORTAL_ADMIN_PASSWORD=<your_strong_password>`
-   - `SRC_PORTAL_OPEN_BROWSER=0`
-4. Add a Railway **Volume** and mount it at `/data`.
-5. Deploy.
-
-`railway.json` and `Procfile` are included. Production start command uses `gunicorn`.
-
 ## Render Deployment
 
 1. Keep repository public/private as you prefer.
