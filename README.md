@@ -1,15 +1,25 @@
-# SRC Class Representative Portal
+﻿# SRC Class Representative Portal
 
 Web app for managing class representative applications, meetings, awards, engagement points, ranking, and bulk email workflows.
 
 ## Preview
 
-![Dashboard](docs/screenshots/dashboard.png)
-![Class Reps](docs/screenshots/class-reps.png)
-![Meetings](docs/screenshots/meetings.png)
-![Awards](docs/screenshots/awards.png)
-![Engagement](docs/screenshots/engagement.png)
-![Emails](docs/screenshots/emails.png)
+### Sample Data Snapshot (Demo)
+| Metric | Sample Value |
+|---|---:|
+| Total Class Reps | 86 |
+| Meetings This Term | 14 |
+| Avg Attendance | 78% |
+| Awards Issued | 22 |
+| Emails Sent | 145 |
+
+### Screenshots
+![Dashboard](https://raw.githubusercontent.com/Souravv2412/src-classrep-portal/main/docs/screenshots/dashboard.png)
+![Class Reps](https://raw.githubusercontent.com/Souravv2412/src-classrep-portal/main/docs/screenshots/class-reps.png)
+![Meetings](https://raw.githubusercontent.com/Souravv2412/src-classrep-portal/main/docs/screenshots/meetings.png)
+![Awards](https://raw.githubusercontent.com/Souravv2412/src-classrep-portal/main/docs/screenshots/awards.png)
+![Engagement](https://raw.githubusercontent.com/Souravv2412/src-classrep-portal/main/docs/screenshots/engagement.png)
+![Emails](https://raw.githubusercontent.com/Souravv2412/src-classrep-portal/main/docs/screenshots/emails.png)
 
 ## Core Features
 
