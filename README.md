@@ -4,15 +4,6 @@ Web app for managing class representative applications, meetings, awards, engage
 
 ## Preview
 
-### Sample Data Snapshot (Demo)
-| Metric | Sample Value |
-|---|---:|
-| Total Class Reps | 86 |
-| Meetings This Term | 14 |
-| Avg Attendance | 78% |
-| Awards Issued | 22 |
-| Emails Sent | 145 |
-
 ### Screenshots
 ![Dashboard](https://raw.githubusercontent.com/Souravv2412/src-classrep-portal/main/docs/screenshots/dashboard.png)
 ![Class Reps](https://raw.githubusercontent.com/Souravv2412/src-classrep-portal/main/docs/screenshots/class-reps.png)
